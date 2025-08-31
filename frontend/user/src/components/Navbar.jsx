@@ -84,7 +84,7 @@ export default function Navbar() {
             </a>
             <a
               href="/signup"
-              className="flex-1 text-center bg-indigo-200 rounded-full px-4 py-3 text-sm font-medium text-indigo-900 shadow hover:bg-indigo-300 transition"
+              className="flex-1 text-center bg-warm rounded-full px-4 py-3 text-sm font-medium text-indigo-900 shadow hover:bg-indigo-300 transition"
               onClick={() => setIsOpen(false)}
             >
               Sign Up
