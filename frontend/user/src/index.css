@@ -36,6 +36,9 @@ body {
     transform: scale(1);
   }
 }
+html {
+  scroll-behavior: smooth;
+}
 
 .animate-fade-in-up {
   animation: fade-in-up 0.8s ease-out forwards;

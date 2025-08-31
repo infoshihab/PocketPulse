@@ -1,7 +1,9 @@
 import React from "react";
 import { assets } from "../assets/assets";
+import { useNavigate } from "react-router-dom";
 
 export const Contact = () => {
+  const navigate = useNavigate();
   const services = [
     {
       title: "Expense Tracking",
@@ -19,6 +21,9 @@ export const Contact = () => {
       icon: "📜",
     },
   ];
+  const handleButton = () => {
+    navigate("/signup");
+  };
 
   return (
     <section
@@ -37,27 +42,22 @@ export const Contact = () => {
           </p>
         </header>
 
-        {/* Service Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
           {services.map((service, idx) => (
             <div
               key={idx}
               className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-gray-100 flex flex-col items-center text-center"
             >
-              {/* Icon */}
               <div className="text-4xl mb-4">{service.icon}</div>
 
-              {/* Title */}
               <h4 className="text-lg font-semibold text-gray-900 mb-2">
                 {service.title}
               </h4>
 
-              {/* Description */}
               <p className="text-gray-600 text-sm leading-relaxed">
                 {service.desc}
               </p>
 
-              {/* Decorative Underline */}
               <div className="mt-4 w-10 h-1 bg-primary rounded-full"></div>
             </div>
           ))}
@@ -67,7 +67,10 @@ export const Contact = () => {
           <div>
             <h3>Ready to experience of PocketPulse?</h3>
           </div>
-          <button className="mt-6 coursor-pointer hover:scale-110 transition-transform hover:bg-cream hover:text-black bg-secondary shadow px-8 py-1 rounded-2xl ">
+          <button
+            onClick={handleButton}
+            className="mt-6 coursor-pointer hover:scale-110 transition-transform hover:bg-cream hover:text-black bg-secondary shadow px-8 py-1 rounded-2xl "
+          >
             Get Start
           </button>
         </div>

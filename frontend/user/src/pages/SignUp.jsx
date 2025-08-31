@@ -56,7 +56,7 @@ const SignupPage = () => {
           <p className="mt-2 text-center text-sm text-gray-600">
             Join us today or{" "}
             <a
-              href="#"
+              href="/login"
               className="font-medium text-indigo-600 hover:text-indigo-500"
             >
               sign in
