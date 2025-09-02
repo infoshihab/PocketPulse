@@ -15,7 +15,7 @@ import insta from "./insta.png";
 import telegram from "./telegram.png";
 import about4 from "./about4.jpg";
 import about6 from "./about6.jpg";
-
+import plogo from "./plogo.png";
 export const assets = {
   aboutimg,
   about4,
@@ -31,7 +31,7 @@ export const assets = {
   service1,
   service2,
   service3,
-
+  plogo,
   facebook,
   insta,
   telegram,
