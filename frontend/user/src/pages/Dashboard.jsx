@@ -15,7 +15,7 @@ function Dashboard() {
         </div>
       </main>
 
-      <aside className="hidden lg:block lg:w-80 bg-white border-l shadow-sm">
+      <aside className="hidden lg:block lg:w-90 bg-white border-l shadow-sm">
         <RightSidebar />
       </aside>
     </div>
