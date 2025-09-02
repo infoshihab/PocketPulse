@@ -16,7 +16,9 @@ import telegram from "./telegram.png";
 import about4 from "./about4.jpg";
 import about6 from "./about6.jpg";
 import plogo from "./plogo.png";
+import user from "./usermood.jpg";
 export const assets = {
+  user,
   aboutimg,
   about4,
   about6,

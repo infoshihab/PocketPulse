@@ -26,6 +26,13 @@ const register = async (req, res) => {
       firstName,
       lastName,
       phone,
+      image: req.file
+        ? (
+            await cloudinary.uploader.upload(req.file.path, {
+              folder: "profile_pics",
+            })
+          ).secure_url
+        : undefined,
     });
     const user = await newUser.save();
 

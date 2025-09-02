@@ -13,7 +13,7 @@ import {
   YAxis,
   CartesianGrid,
 } from "recharts";
-
+import { assets } from "../assets/assets.js";
 export default function Profile() {
   const { user, categoryTotals } = useContext(AppContext);
 
@@ -58,10 +58,7 @@ export default function Profile() {
       <div className="w-full max-w-screen-xl">
         <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl shadow-lg p-6 flex flex-col items-center">
           <img
-            src={
-              user?.image ||
-              "https://res.cloudinary.com/your_cloud_name/image/upload/v123456/defaults/user.png"
-            }
+            src={user?.image || "assets.user"}
             alt="Profile"
             className="w-28 h-28 rounded-full border-4 border-white shadow-md object-cover -mt-16"
           />

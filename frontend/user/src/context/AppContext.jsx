@@ -5,7 +5,7 @@ import dayjs from "dayjs";
 export const AppContext = createContext();
 
 export const AppContextProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(false);
   const [dashboardItems, setDashboardItems] = useState([]);
   const [categoryTotals, setCategoryTotals] = useState([]);
   const [reports, setReports] = useState([]);
@@ -53,6 +53,10 @@ export const AppContextProvider = ({ children }) => {
   const register = async (formData) => {
     try {
       const res = await axios.post(`${API}/user/signup`, formData);
+      if (res.data.success) {
+        setUser(res.data.user);
+        setToken(res.data.token);
+      }
       return res.data;
     } catch (error) {
       return {
