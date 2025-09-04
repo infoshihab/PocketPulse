@@ -21,7 +21,7 @@ mongoose
   });
 
 const allowedOrigins = [
-  "https://pocketpulsefrontend.onrender.com",
+  "https://pocketpulse-vrkx.onrender.com",
   "http://localhost:5173",
 ];
 
