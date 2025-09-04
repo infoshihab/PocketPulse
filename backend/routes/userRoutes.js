@@ -9,6 +9,9 @@ import {
   addToDashboard,
   getDashboarditems,
   deleteDashboardItem,
+  sendResetCode,
+  verifyResetCode,
+  resetPassword,
 } from "../controllers/authController.js";
 import { submitReport } from "../controllers/reportConroller.js";
 import { upload } from "../middlewares/upload.js";
@@ -32,4 +35,9 @@ userRouter.delete("/dashboard/:id", authUser, deleteDashboardItem);
 userRouter.post("/submit", authUser, upload.single("file"), submitReport);
 // userRouter.get("/myreports", getMyReports);
 // userRouter.get("/settings",authUser,updateProfile,upload.single("image"))
+
+userRouter.post("/forgot-password", sendResetCode);
+userRouter.post("/verify-otp", verifyResetCode);
+userRouter.post("/reset-password", resetPassword);
+
 export default userRouter;

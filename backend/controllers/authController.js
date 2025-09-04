@@ -5,6 +5,10 @@ import cloudinary from "../config/cloudinary.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
+import transporter from "../config/nodemailer.js";
+import crypto from "crypto";
+
+const otpStore = {};
 
 // Register
 const register = async (req, res) => {
@@ -206,6 +210,85 @@ const deleteDashboardItem = async (req, res) => {
   }
 };
 
+const sendResetCode = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // Generate 6-digit OTP
+    const otp = crypto.randomInt(100000, 999999);
+    otpStore[email] = { otp, expires: Date.now() + 5 * 60 * 1000 }; // valid for 5 mins
+
+    // Send email
+    await transporter.sendMail({
+      from: "pocketpulse0@gmail.com",
+      to: email,
+      subject: "Password Reset Verification Code",
+      text: `Your verification code is: ${otp}`,
+    });
+
+    res.json({ success: true, message: "Verification code sent to email" });
+  } catch (error) {
+    console.error("Send Reset Code Error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// Verify OTP
+const verifyResetCode = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const record = otpStore[email];
+
+    if (!record) {
+      return res.status(400).json({ success: false, message: "No OTP found" });
+    }
+
+    if (record.expires < Date.now()) {
+      delete otpStore[email];
+      return res.status(400).json({ success: false, message: "OTP expired" });
+    }
+
+    if (record.otp != otp) {
+      return res.status(400).json({ success: false, message: "Invalid OTP" });
+    }
+
+    res.json({ success: true, message: "OTP verified" });
+  } catch (error) {
+    console.error("Verify OTP Error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// Reset Password
+const resetPassword = async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    await user.save();
+
+    delete otpStore[email];
+
+    res.json({ success: true, message: "Password updated successfully" });
+  } catch (error) {
+    console.error("Reset Password Error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
 export {
   register,
   login,
@@ -215,4 +298,7 @@ export {
   itemCount,
   getDashboarditems,
   deleteDashboardItem,
+  sendResetCode,
+  verifyResetCode,
+  resetPassword,
 };

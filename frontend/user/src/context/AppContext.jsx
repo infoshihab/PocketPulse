@@ -176,7 +176,42 @@ export const AppContextProvider = ({ children }) => {
       };
     }
   };
+  const sendResetCode = async (email) => {
+    try {
+      const res = await axios.post(`${API}/user/forgot-password`, { email });
+      return res.data;
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
+  };
 
+  // Verify OTP
+  const verifyResetCode = async (email, otp) => {
+    try {
+      console.log("Sending verify-otp payload:", { email, otp });
+      const res = await axios.post(`${API}/user/verify-otp`, { email, otp });
+      return res.data;
+    } catch (error) {
+      console.error("Verify OTP Error:", error.response?.data || error.message);
+      return {
+        success: false,
+        message: error.response?.data?.message || error.message,
+      };
+    }
+  };
+
+  // Reset Password
+  const resetPassword = async (email, newPassword) => {
+    try {
+      const res = await axios.post(`${API}/user/reset-password`, {
+        email,
+        newPassword,
+      });
+      return res.data;
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
+  };
   // Fetch items & totals when user logs in
   useEffect(() => {
     if (token && user?._id) {
@@ -201,6 +236,9 @@ export const AppContextProvider = ({ children }) => {
         logout,
         updateProfile,
         deleteDashboardItem,
+        sendResetCode,
+        verifyResetCode,
+        resetPassword,
       }}
     >
       {children}
