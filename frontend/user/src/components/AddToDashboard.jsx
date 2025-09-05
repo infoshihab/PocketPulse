@@ -9,16 +9,15 @@ import { AppContext } from "../context/AppContext";
 
 export default function AddToDashboard() {
   const { user, addToDashboard } = useContext(AppContext);
-  const [formData, setFromData] = useState({
+  const [formData, setFormData] = useState({
     summary: "",
     category: "",
     amount: "",
     date: "",
   });
 
-  const handleChange = (e) => {
-    setFromData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,119 +28,93 @@ export default function AddToDashboard() {
 
     if (res.success) {
       alert(res.message);
-      setFromData({ summary: "", category: "", amount: "", date: "" });
+      setFormData({ summary: "", category: "", amount: "", date: "" });
     } else {
       alert("Error: " + res.message);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center  bg-gray-50 p-4">
+    <div className="bg-gray-50 min-h-[100vh] flex flex-col items-center pt-10 pb-10">
       <form
         onSubmit={handleSubmit}
-        className="bg-white shadow-lg rounded-xl w-full max-w-md p-6 sm:p-8"
+        className="bg-white shadow-lg rounded-2xl w-full max-w-md p-6 space-y-5"
       >
-        <h2 className="text-2xl font-bold text-gray-800 text-center mb-6">
-          Add to Dashboard
+        <h2 className="text-2xl font-bold text-gray-800 text-center">
+          Add Transaction
         </h2>
+        <p className="text-sm text-gray-500 text-center">
+          Quickly add income or expenses
+        </p>
 
-        {/* Amount */}
-        <div className="mb-4 relative">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Enter Amount
-          </label>
-          <div className="relative">
-            <span className="absolute left-3 top-2.5 text-gray-400">
-              <FaDollarSign />
-            </span>
-            <input
-              type="number"
-              name="amount"
-              value={formData.amount}
-              onChange={handleChange}
-              placeholder="Enter the amount"
-              className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 text-sm
-                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
+        <div className="relative">
+          <span className="absolute left-3 top-3 text-gray-400">
+            <FaDollarSign />
+          </span>
+          <input
+            type="number"
+            name="amount"
+            value={formData.amount}
+            onChange={handleChange}
+            placeholder="Amount"
+            className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
         </div>
 
-        {/* Summary */}
-        <div className="mb-4 relative">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Enter Summary
-          </label>
-          <div className="relative">
-            <span className="absolute left-3 top-2.5 text-gray-400">
-              <FaAlignLeft />
-            </span>
-            <input
-              type="text"
-              name="summary"
-              value={formData.summary}
-              onChange={handleChange}
-              placeholder="Enter the summary"
-              className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 text-sm
-                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
+        <div className="relative">
+          <span className="absolute left-3 top-3 text-gray-400">
+            <FaAlignLeft />
+          </span>
+          <input
+            type="text"
+            name="summary"
+            value={formData.summary}
+            onChange={handleChange}
+            placeholder="Summary"
+            className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
         </div>
 
-        {/* Category */}
-        <div className="mb-4 relative">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Select Category
-          </label>
-          <div className="relative">
-            <span className="absolute left-3 top-2.5 text-gray-400">
-              <FaListAlt />
-            </span>
-            <select
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 text-sm bg-white
-                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">Choose a category</option>
-              <option value="income">Income</option>
-              <option value="health&food">Health</option>
-              <option value="rent">Rent</option>
-              <option value="utility">Utility</option>
-              <option value="expense">Expense</option>
-              <option value="recivable">Recivable</option>
-              <option value="payable">Payable</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
+        <div className="relative">
+          <span className="absolute left-3 top-3 text-gray-400">
+            <FaListAlt />
+          </span>
+          <select
+            name="category"
+            value={formData.category}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Select Category</option>
+            <option value="income">Income</option>
+            <option value="health&food">Health & Food</option>
+            <option value="rent">Rent</option>
+            <option value="utility">Utility</option>
+            <option value="expense">Expense</option>
+            <option value="recivable">Receivable</option>
+            <option value="payable">Payable</option>
+            <option value="other">Other</option>
+          </select>
         </div>
 
-        {/* Date */}
-        <div className="mb-6 relative">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Enter Date
-          </label>
-          <div className="relative">
-            <span className="absolute left-3 top-2.5 text-gray-400">
-              <FaCalendarAlt />
-            </span>
-            <input
-              type="date"
-              name="date"
-              value={formData.date}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 text-sm
-                         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
+        <div className="relative">
+          <span className="absolute left-3 top-3 text-gray-400">
+            <FaCalendarAlt />
+          </span>
+          <input
+            type="date"
+            name="date"
+            value={formData.date}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
         </div>
 
-        {/* Button */}
         <button
           type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition-shadow shadow"
         >
-          Add to Dashboard
+          + Add to Dashboard
         </button>
       </form>
     </div>

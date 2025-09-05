@@ -3,14 +3,13 @@ import { FaCalendarAlt, FaListAlt, FaTrash } from "react-icons/fa";
 import { AppContext } from "../context/AppContext";
 
 export default function History() {
-  // value = what your DB actually stores, label = what users see
   const CATEGORY_OPTIONS = [
     { value: "income", label: "Income" },
     { value: "expense", label: "Expenses" },
     { value: "utility", label: "Utility" },
     { value: "rent", label: "Rent" },
     { value: "health&food", label: "Health & Food" },
-    { value: "recivable", label: "Receivable" }, // note your key is "recivable"
+    { value: "recivable", label: "Receivable" }, // backend spelling preserved
     { value: "payable", label: "Payable" },
     { value: "other", label: "Others" },
   ];
@@ -18,9 +17,9 @@ export default function History() {
   const { dashboardItems, deleteDashboardItem } = useContext(AppContext);
 
   const [filters, setFilters] = useState({
-    category: "", // stores the lowercase value (e.g. "income")
-    from: "", // YYYY-MM-DD
-    to: "", // YYYY-MM-DD
+    category: "",
+    from: "",
+    to: "",
   });
   const [page, setPage] = useState(1);
   const itemsPerPage = 20;
@@ -39,28 +38,22 @@ export default function History() {
     setPage(1);
   };
 
-  // Clean base array
   const baseData = useMemo(
     () => (Array.isArray(dashboardItems) ? dashboardItems : []),
     [dashboardItems]
   );
 
-  // Filter + sort (newest first)
   const filteredSorted = useMemo(() => {
     const fromDate = filters.from ? new Date(`${filters.from}T00:00:00`) : null;
     const toDate = filters.to ? new Date(`${filters.to}T23:59:59.999`) : null;
-    const wantCategory = filters.category; // already lowercase value
+    const wantCategory = filters.category;
 
     const pass = baseData.filter((item) => {
-      // category check (stored as lowercase keys in your DB)
       const cat = (item.category || "").toString().trim().toLowerCase();
       const matchCategory = wantCategory ? cat === wantCategory : true;
 
-      // date check (prefer item.date; fallback to createdAt if provided by backend)
       const rawDate = item.date || item.createdAt || null;
       const itemDate = rawDate ? new Date(rawDate) : null;
-
-      // If there are date filters but the item has no date, exclude it.
       if ((fromDate || toDate) && !itemDate) return false;
 
       const matchFrom = fromDate ? itemDate >= fromDate : true;
@@ -69,7 +62,6 @@ export default function History() {
       return matchCategory && matchFrom && matchTo;
     });
 
-    // sort newest → oldest by date/createdAt
     return pass.sort((a, b) => {
       const aDate = new Date(a.date || a.createdAt || 0).getTime();
       const bDate = new Date(b.date || b.createdAt || 0).getTime();
@@ -77,7 +69,6 @@ export default function History() {
     });
   }, [baseData, filters]);
 
-  // Pagination
   const totalPages = Math.max(
     1,
     Math.ceil(filteredSorted.length / itemsPerPage)
@@ -96,14 +87,12 @@ export default function History() {
   return (
     <div className="flex justify-center items-start min-h-screen bg-gray-50 p-4">
       <div className="w-full max-w-6xl space-y-6">
-        {/* Filters */}
         <div className="bg-white rounded-2xl shadow-lg p-6">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
             Filter History
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Category */}
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">
                 Category
@@ -126,7 +115,6 @@ export default function History() {
               </div>
             </div>
 
-            {/* From */}
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">
                 From
@@ -143,7 +131,6 @@ export default function History() {
               </div>
             </div>
 
-            {/* To */}
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">
                 To
@@ -162,7 +149,6 @@ export default function History() {
           </div>
         </div>
 
-        {/* Table */}
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
           <h2 className="text-lg font-semibold text-gray-800 px-6 py-4 border-b">
             Recent Added to Dashboard
@@ -191,12 +177,24 @@ export default function History() {
                         } hover:bg-indigo-50 transition`}
                       >
                         <td className="py-2 px-4">{item.summary}</td>
-                        <td className="py-2 px-4 text-right font-semibold">
+                        <td
+                          className={`py-2 px-4 text-right font-semibold ${
+                            ["income", "recivable"].includes(
+                              (item.category || "").toLowerCase()
+                            )
+                              ? "text-green-600"
+                              : ["expense", "payable"].includes(
+                                  (item.category || "").toLowerCase()
+                                )
+                              ? "text-red-600"
+                              : "text-gray-700"
+                          }`}
+                        >
                           {formatTk(item.amount)}
                         </td>
                         <td className="py-2 px-4 text-center">
                           {dateStr
-                            ? new Date(dateStr).toLocaleDateString()
+                            ? new Date(dateStr).toLocaleDateString("en-GB")
                             : "-"}
                         </td>
                         <td className="py-2 px-4 italic">
@@ -216,7 +214,7 @@ export default function History() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={4} className="py-6 text-center text-gray-500">
+                    <td colSpan={5} className="py-6 text-center text-gray-500">
                       No records found
                     </td>
                   </tr>
@@ -225,7 +223,6 @@ export default function History() {
             </table>
           </div>
 
-          {/* Pagination */}
           <div className="p-4 flex justify-between items-center">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}

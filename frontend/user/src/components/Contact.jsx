@@ -1,5 +1,4 @@
 import React from "react";
-import { assets } from "../assets/assets";
 import { useNavigate } from "react-router-dom";
 
 export const Contact = () => {
@@ -31,7 +30,6 @@ export const Contact = () => {
       className="px-6 sm:px-12 lg:px-20 py-16 bg-gradient-to-b from-gray-50 to-white"
     >
       <div className="max-w-6xl mx-auto">
-        {/* Section Header */}
         <header className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
             Our Core Services
@@ -49,29 +47,26 @@ export const Contact = () => {
               className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-gray-100 flex flex-col items-center text-center"
             >
               <div className="text-4xl mb-4">{service.icon}</div>
-
               <h4 className="text-lg font-semibold text-gray-900 mb-2">
                 {service.title}
               </h4>
-
               <p className="text-gray-600 text-sm leading-relaxed">
                 {service.desc}
               </p>
-
               <div className="mt-4 w-10 h-1 bg-primary rounded-full"></div>
             </div>
           ))}
         </div>
 
-        <div className="bg-indigo-800 text-2xl text-center p-8 rounded-2xl mt-8 text-white">
-          <div>
-            <h3>Ready to experience of PocketPulse?</h3>
-          </div>
+        <div className="bg-indigo-800 text-center p-8 rounded-2xl mt-12 text-white">
+          <h3 className="text-2xl sm:text-3xl font-semibold">
+            Ready to experience PocketPulse?
+          </h3>
           <button
             onClick={handleButton}
-            className="mt-6 coursor-pointer hover:scale-110 transition-transform hover:bg-cream hover:text-black bg-secondary shadow px-8 py-1 rounded-2xl "
+            className="mt-6 cursor-pointer transform hover:scale-105 hover:bg-yellow-300 hover:text-black bg-indigo-500 shadow px-8 py-3 rounded-2xl font-medium transition-all"
           >
-            Get Start
+            Get Started
           </button>
         </div>
       </div>

@@ -20,6 +20,7 @@ export const About = () => {
   return (
     <section id="about" className="mt-10 bg-white px-6 sm:px-10 lg:px-20 py-16">
       <div className="max-w-7xl mx-auto">
+        {/* Header */}
         <header className="text-center max-w-2xl mx-auto mb-16">
           <h3 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
             Take Control of Your Finances
@@ -31,13 +32,15 @@ export const About = () => {
           </p>
         </header>
 
+        {/* Content */}
         <div className="flex flex-col md:flex-row gap-10 md:gap-16 items-center mb-20">
+          {/* Images */}
           <div className="md:w-1/2 grid grid-cols-2 gap-4">
             {[assets.about2img, assets.about4, assets.about6].map(
               (src, idx) => (
                 <div
                   key={idx}
-                  className="rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300"
+                  className="rounded-xl overflow-hidden shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
                 >
                   <img
                     src={src}
@@ -51,13 +54,14 @@ export const About = () => {
             )}
           </div>
 
+          {/* Features */}
           <div className="md:w-1/2 space-y-6">
             {features.map((item, idx) => (
               <article
                 key={idx}
                 className="bg-gray-50 p-6 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300"
               >
-                <h4 className="text-lg font-semibold text-primary mb-2">
+                <h4 className="text-lg font-semibold text-indigo-600 mb-2">
                   {item.title}
                 </h4>
                 <p className="text-gray-600 text-sm sm:text-base leading-relaxed">

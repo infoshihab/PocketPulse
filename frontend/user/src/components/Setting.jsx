@@ -4,7 +4,6 @@ import { AppContext } from "../context/AppContext";
 export default function Settings() {
   const { user, updateProfile } = useContext(AppContext);
 
-  // Local states for form
   const [profileFile, setProfileFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [formData, setFormData] = useState({
@@ -17,7 +16,6 @@ export default function Settings() {
   });
   const [loading, setLoading] = useState(false);
 
-  // Load initial user data
   useEffect(() => {
     if (user) {
       setFormData((prev) => ({
@@ -30,26 +28,22 @@ export default function Settings() {
     }
   }, [user]);
 
-  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle profile file change
   const handleFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
+    if (e.target.files?.[0]) {
       setProfileFile(e.target.files[0]);
       setPreview(URL.createObjectURL(e.target.files[0]));
     }
   };
 
-  // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    // Password validation
     if (formData.newPass && formData.newPass !== formData.confirm) {
       alert("New password and confirm password do not match.");
       setLoading(false);
@@ -60,7 +54,7 @@ export default function Settings() {
     setLoading(false);
 
     if (result.success) {
-      alert("Profile updated successfully!");
+      alert("✅ Profile updated successfully!");
       setFormData((prev) => ({
         ...prev,
         current: "",
@@ -68,7 +62,7 @@ export default function Settings() {
         confirm: "",
       }));
     } else {
-      alert(result.message || "Update failed");
+      alert(result.message || "❌ Update failed");
     }
   };
 
@@ -79,14 +73,12 @@ export default function Settings() {
       </h1>
 
       <form onSubmit={handleSubmit} className="space-y-14">
-        {/* Profile Section */}
         <section>
           <h2 className="text-2xl font-semibold text-gray-800 mb-8 border-b border-gray-200 pb-3">
             Profile Information
           </h2>
 
-          <div className="flex flex-col md:flex-row md:items-center gap-8">
-            {/* Profile Picture */}
+          <div className="flex flex-col md:flex-row md:items-start gap-10">
             <div className="flex flex-col items-center md:items-start gap-5">
               {preview ? (
                 <img
@@ -99,11 +91,12 @@ export default function Settings() {
                   No Image
                 </div>
               )}
+
               <label
                 htmlFor="profilePicInput"
-                className="cursor-pointer text-blue-600 hover:text-blue-800 font-medium transition"
+                className="cursor-pointer bg-blue-50 text-blue-600 hover:bg-blue-100 px-4 py-2 rounded-lg font-medium text-sm transition shadow-sm"
               >
-                Upload Profile Picture
+                Change Picture
               </label>
               <input
                 id="profilePicInput"
@@ -114,7 +107,6 @@ export default function Settings() {
               />
             </div>
 
-            {/* Profile Details */}
             <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-7">
               {[
                 { id: "firstName", label: "First Name" },
@@ -122,10 +114,14 @@ export default function Settings() {
                 { id: "phone", label: "Phone Number", type: "tel" },
               ].map(({ id, label, type = "text" }) => (
                 <div key={id} className="flex flex-col">
-                  <label className="mb-2 font-semibold text-gray-700 tracking-wide">
+                  <label
+                    htmlFor={id}
+                    className="mb-2 font-semibold text-gray-700 tracking-wide"
+                  >
                     {label}
                   </label>
                   <input
+                    id={id}
                     name={id}
                     type={type}
                     value={formData[id]}
@@ -139,7 +135,6 @@ export default function Settings() {
           </div>
         </section>
 
-        {/* Password Section */}
         <section>
           <h2 className="text-2xl font-semibold text-gray-800 mb-8 border-b border-gray-200 pb-3">
             Change Password
@@ -163,15 +158,36 @@ export default function Settings() {
           </div>
         </section>
 
-        {/* Save Button */}
         <div className="text-center">
           <button
             type="submit"
             disabled={loading}
-            className={`bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-12 rounded-lg shadow-lg transition transform hover:-translate-y-0.5 ${
+            className={`inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-12 rounded-lg shadow-lg transition transform hover:-translate-y-0.5 ${
               loading ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >
+            {loading && (
+              <svg
+                className="animate-spin h-5 w-5 mr-2 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                ></path>
+              </svg>
+            )}
             {loading ? "Saving..." : "Save Changes"}
           </button>
         </div>

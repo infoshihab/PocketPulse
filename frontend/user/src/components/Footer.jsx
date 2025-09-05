@@ -5,7 +5,6 @@ export const Footer = () => {
   return (
     <footer className="bg-indigo-800 text-white pt-12 pb-6">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
-        {/* About */}
         <div className="text-center  sm:text-left">
           <h1 className="text-xl font-semibold mb-4 relative inline-block after:content-[''] after:block after:w-20 after:h-1 after:bg-warm after:mt-1 after:mx-auto sm:after:mx-0">
             About
@@ -17,19 +16,17 @@ export const Footer = () => {
           </p>
         </div>
 
-        {/* Contact Info */}
         <div className="text-center sm:text-left">
           <h1 className="text-xl  font-semibold mb-4 relative inline-block after:content-[''] after:block after:w-25 after:h-1 after:bg-warm after:mt-1 after:mx-auto sm:after:mx-0">
             Contact Info
           </h1>
           <ul className="space-y-1 text-warm text-sm">
             <li>Address: k2/banani jowar shara</li>
-            <li>Email: pocketpulse@gmail.com</li>
-            <li>Phone: +880123456789</li>
+            <li>Email: pocketpulse0@gmail.com</li>
+            <li>Phone: +8801986605293</li>
           </ul>
         </div>
 
-        {/* Subscribe */}
         <div className="text-center sm:text-left">
           <h1 className="text-xl font-semibold mb-4 relative inline-block after:content-[''] after:block after:w-25 after:h-1 after:bg-warm after:mt-1 after:mx-auto sm:after:mx-0">
             Subscribe
@@ -64,7 +61,6 @@ export const Footer = () => {
         </div>
       </div>
 
-      {/* Bottom Bar */}
       <div className="mt-10 border-t border-cream pt-4 text-center text-white text-xs">
         &copy; 2025 PocketPulse. All rights reserved.
       </div>
