@@ -11,7 +11,7 @@ export const AppContextProvider = ({ children }) => {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const API = import.meta.env.VITE_BACKEND_URL;
+  const API = import.meta.env.VITE_BACKEND_URL.replace(/\/$/, "");
   const [token, setToken] = useState(localStorage.getItem("token") || null);
 
   // Set authorization header if token exists
@@ -90,7 +90,7 @@ export const AppContextProvider = ({ children }) => {
         formData.append("image", profileData.imageFile);
 
       const res = await axios.put(`${API}/user/update-profile`, formData, {
-        headers: { "Content-Type": "multipart.form-data" },
+        headers: { "Content-Type": "multipart/form-data" },
       });
       if (res.data.success) {
         setUser(res.data.userData || user);

@@ -9,41 +9,35 @@ import userRouter from "./routes/userRoutes.js";
 dotenv.config();
 
 const app = express();
-const port = 8000;
+const port = process.env.PORT || 8000;
 
+// MongoDB connection
 mongoose
   .connect(process.env.MONGODB_URL)
-  .then(() => {
-    console.log("mongodb Connected");
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+  .then(() => console.log("MongoDB Connected"))
+  .catch((err) => console.log(err));
 
-const allowedOrigins = [
-  "https://pocketpulse-vrkx.onrender.com",
-  "http://localhost:5173",
-];
+// CORS middleware - allow your frontend only
+const allowedOrigin = process.env.VITE_FRONTEND_URL; // set this in your .env
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
-      return callback(new Error("Not allowed by CORS"));
-    },
+    origin: allowedOrigin,
     credentials: true,
   })
 );
 
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.send("Backend is running");
-});
-
+// API routes
 app.use("/api/user", userRouter);
 
+// Test route
+app.get("/api/test", (req, res) => {
+  res.json({ message: "Backend works!" });
+});
+
+// Start server
 app.listen(port, () => {
-  console.log(`server is running on port ${port}`);
+  console.log(`Server running on port ${port}`);
 });
