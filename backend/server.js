@@ -20,6 +20,8 @@ mongoose
 const allowedOrigins = [
   "http://localhost:5173",
   "https://pocketpulse-vrkx.onrender.com",
+  "https://www.pocketpuls.com",
+  "https://pocketpuls.com",
 ];
 
 app.use(
