@@ -17,12 +17,22 @@ mongoose
   .then(() => console.log("MongoDB Connected"))
   .catch((err) => console.log(err));
 
-// CORS middleware - allow your frontend only
-const allowedOrigin = process.env.VITE_FRONTEND_URL; // set this in your .env
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://pocketpulse-vrkx.onrender.com",
+];
 
 app.use(
   cors({
-    origin: allowedOrigin,
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        console.log("Blocked by CORS:", origin);
+        return callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
