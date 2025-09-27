@@ -22,6 +22,7 @@ const allowedOrigins = [
   "https://pocketpulse-vrkx.onrender.com",
   "https://www.pocketpuls.com",
   "https://pocketpuls.com",
+  "https://pocketpulse-1.onrender.com",
 ];
 
 app.use(
