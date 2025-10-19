@@ -1,7 +1,6 @@
 import User from "../models/userModel.js";
 import DashboardItem from "../models/dashboardModel.js";
 import cloudinary from "../config/cloudinary.js";
-
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
@@ -23,14 +22,6 @@ const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    let imageUrl;
-    if (req.file?.path) {
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: "profile_pics",
-      });
-      imageUrl = result.secure_url;
-    }
-
     const newUser = new User({
       username,
       email,
@@ -38,7 +29,13 @@ const register = async (req, res) => {
       firstName,
       lastName,
       phone,
-      image: imageUrl,
+      image: req.file
+        ? (
+            await cloudinary.uploader.upload(req.file.path, {
+              folder: "profile_pics",
+            })
+          ).secure_url
+        : undefined,
     });
 
     const user = await newUser.save();
@@ -59,6 +56,7 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+
     const user = await User.findOne({ email });
     if (!user)
       return res
@@ -74,6 +72,7 @@ const login = async (req, res) => {
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
+
     return res.status(200).json({ success: true, token, user });
   } catch (error) {
     console.error("Login Error:", error);
@@ -96,11 +95,13 @@ const getprofile = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const { firstName, lastName, phone, current, newPass, confirm } = req.body;
+    const imageFile = req.file;
 
-    if (!firstName || !lastName || !phone)
+    if (!firstName || !lastName || !phone) {
       return res
         .status(400)
         .json({ success: false, message: "Missing required fields" });
+    }
 
     const user = await User.findById(req.user._id);
     if (!user)
@@ -118,15 +119,17 @@ const updateProfile = async (req, res) => {
         return res
           .status(400)
           .json({ success: false, message: "Current password incorrect" });
+
       if (newPass !== confirm)
         return res
           .status(400)
           .json({ success: false, message: "New passwords do not match" });
+
       user.password = await bcrypt.hash(newPass, 10);
     }
 
-    if (req.file?.path) {
-      const upload = await cloudinary.uploader.upload(req.file.path, {
+    if (imageFile) {
+      const upload = await cloudinary.uploader.upload(imageFile.path, {
         folder: "profile_pics",
         overwrite: true,
       });
@@ -141,11 +144,12 @@ const updateProfile = async (req, res) => {
   }
 };
 
-// Dashboard
+// Dashboard Routes
 const addToDashboard = async (req, res) => {
   try {
     const { summary, category, amount } = req.body;
     const user = await User.findById(req.user._id).select("-password");
+
     if (!user) return res.json({ success: false, message: "User Not Found" });
 
     const newItem = new DashboardItem({
@@ -154,6 +158,7 @@ const addToDashboard = async (req, res) => {
       category,
       amount,
     });
+
     await newItem.save();
 
     res.json({
@@ -179,6 +184,7 @@ const itemCount = async (req, res) => {
       },
       { $project: { _id: 0, category: "$_id", totalAmount: 1, count: 1 } },
     ]);
+
     res.json({ success: true, data: categoryTotal });
   } catch (error) {
     res.json({ success: false, message: error.message });
@@ -201,8 +207,10 @@ const deleteDashboardItem = async (req, res) => {
   try {
     const { id } = req.params;
     const deletedItem = await DashboardItem.findByIdAndDelete(id);
+
     if (!deletedItem)
       return res.status(404).json({ message: "Item Not Found" });
+
     res.json({ message: "Item Deleted Successfully", deletedItem });
   } catch (error) {
     console.error("Error Deleting Item:", error);
@@ -210,15 +218,17 @@ const deleteDashboardItem = async (req, res) => {
   }
 };
 
-// Password reset
+// Send Reset Code
 const sendResetCode = async (req, res) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ email });
-    if (!user)
+
+    if (!user) {
       return res
         .status(404)
         .json({ success: false, message: "User not found" });
+    }
 
     const otp = crypto.randomInt(100000, 999999);
     otpStore[email] = { otp, expires: Date.now() + 5 * 60 * 1000 };
@@ -237,18 +247,25 @@ const sendResetCode = async (req, res) => {
   }
 };
 
+// Verify OTP
 const verifyResetCode = async (req, res) => {
   try {
     const { email, otp } = req.body;
     const record = otpStore[email];
-    if (!record)
+
+    if (!record) {
       return res.status(400).json({ success: false, message: "No OTP found" });
+    }
+
     if (record.expires < Date.now()) {
       delete otpStore[email];
       return res.status(400).json({ success: false, message: "OTP expired" });
     }
-    if (record.otp != otp)
+
+    if (record.otp != otp) {
       return res.status(400).json({ success: false, message: "Invalid OTP" });
+    }
+
     res.json({ success: true, message: "OTP verified" });
   } catch (error) {
     console.error("Verify OTP Error:", error);
@@ -256,18 +273,22 @@ const verifyResetCode = async (req, res) => {
   }
 };
 
+// Reset Password
 const resetPassword = async (req, res) => {
   try {
     const { email, newPassword } = req.body;
     const user = await User.findOne({ email });
-    if (!user)
+
+    if (!user) {
       return res
         .status(404)
         .json({ success: false, message: "User not found" });
+    }
 
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(newPassword, salt);
     await user.save();
+
     delete otpStore[email];
 
     res.json({ success: true, message: "Password updated successfully" });
@@ -277,7 +298,6 @@ const resetPassword = async (req, res) => {
   }
 };
 
-// Correct exports
 export {
   register,
   login,
