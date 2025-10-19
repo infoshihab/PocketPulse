@@ -1,31 +1,14 @@
 import User from "../models/userModel.js";
 import DashboardItem from "../models/dashboardModel.js";
 import cloudinary from "../config/cloudinary.js";
+
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import transporter from "../config/nodemailer.js";
 import crypto from "crypto";
-import streamifier from "streamifier";
 
 const otpStore = {};
-
-// Helper: upload file buffer to Cloudinary
-const uploadToCloudinaryBuffer = async (
-  fileBuffer,
-  folder = "profile_pics"
-) => {
-  return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      { folder },
-      (error, result) => {
-        if (error) reject(error);
-        else resolve(result);
-      }
-    );
-    streamifier.createReadStream(fileBuffer).pipe(stream);
-  });
-};
 
 // Register
 const register = async (req, res) => {
@@ -48,11 +31,15 @@ const register = async (req, res) => {
       lastName,
       phone,
       image: req.file
-        ? (await uploadToCloudinaryBuffer(req.file.buffer)).secure_url
+        ? (
+            await cloudinary.uploader.upload(req.file.path, {
+              folder: "profile_pics",
+            })
+          ).secure_url
         : undefined,
     });
-
     const user = await newUser.save();
+
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
@@ -85,10 +72,10 @@ const login = async (req, res) => {
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
-    res.status(200).json({ success: true, token, user });
+    return res.status(200).json({ success: true, token, user });
   } catch (error) {
     console.error("Login Error:", error);
-    res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -109,10 +96,11 @@ const updateProfile = async (req, res) => {
     const { firstName, lastName, phone, current, newPass, confirm } = req.body;
     const imageFile = req.file;
 
-    if (!firstName || !lastName || !phone)
+    if (!firstName || !lastName || !phone) {
       return res
         .status(400)
         .json({ success: false, message: "Missing required fields" });
+    }
 
     const user = await User.findById(req.user._id);
     if (!user)
@@ -138,10 +126,10 @@ const updateProfile = async (req, res) => {
     }
 
     if (imageFile) {
-      const upload = await uploadToCloudinaryBuffer(
-        imageFile.buffer,
-        "profile_pics"
-      );
+      const upload = await cloudinary.uploader.upload(imageFile.path, {
+        folder: "profile_pics",
+        overwrite: true,
+      });
       user.image = upload.secure_url;
     }
 
@@ -158,7 +146,6 @@ const addToDashboard = async (req, res) => {
   try {
     const { summary, category, amount } = req.body;
     const user = await User.findById(req.user._id).select("-password");
-
     if (!user) return res.json({ success: false, message: "User Not Found" });
 
     const newItem = new DashboardItem({
@@ -223,19 +210,21 @@ const deleteDashboardItem = async (req, res) => {
   }
 };
 
-// Send Reset Code
 const sendResetCode = async (req, res) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ email });
-    if (!user)
+    if (!user) {
       return res
         .status(404)
         .json({ success: false, message: "User not found" });
+    }
 
+    // Generate 6-digit OTP
     const otp = crypto.randomInt(100000, 999999);
-    otpStore[email] = { otp, expires: Date.now() + 5 * 60 * 1000 };
+    otpStore[email] = { otp, expires: Date.now() + 5 * 60 * 1000 }; // valid for 5 mins
 
+    // Send email
     await transporter.sendMail({
       from: "pocketpulse0@gmail.com",
       to: email,
@@ -255,14 +244,20 @@ const verifyResetCode = async (req, res) => {
   try {
     const { email, otp } = req.body;
     const record = otpStore[email];
-    if (!record)
+
+    if (!record) {
       return res.status(400).json({ success: false, message: "No OTP found" });
+    }
+
     if (record.expires < Date.now()) {
       delete otpStore[email];
       return res.status(400).json({ success: false, message: "OTP expired" });
     }
-    if (record.otp != otp)
+
+    if (record.otp != otp) {
       return res.status(400).json({ success: false, message: "Invalid OTP" });
+    }
+
     res.json({ success: true, message: "OTP verified" });
   } catch (error) {
     console.error("Verify OTP Error:", error);
@@ -275,10 +270,11 @@ const resetPassword = async (req, res) => {
   try {
     const { email, newPassword } = req.body;
     const user = await User.findOne({ email });
-    if (!user)
+    if (!user) {
       return res
         .status(404)
         .json({ success: false, message: "User not found" });
+    }
 
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(newPassword, salt);
