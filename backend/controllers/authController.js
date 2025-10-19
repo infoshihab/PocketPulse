@@ -1,6 +1,7 @@
 import User from "../models/userModel.js";
 import DashboardItem from "../models/dashboardModel.js";
 import cloudinary from "../config/cloudinary.js";
+
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
@@ -50,7 +51,6 @@ const register = async (req, res) => {
     });
 
     const user = await newUser.save();
-
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
@@ -61,6 +61,43 @@ const register = async (req, res) => {
     res
       .status(500)
       .json({ success: false, message: error.message || "Server error" });
+  }
+};
+
+// Login
+const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    if (!user)
+      return res
+        .status(401)
+        .json({ success: false, message: "User not found" });
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match)
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid credentials" });
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
+    return res.status(200).json({ success: true, token, user });
+  } catch (error) {
+    console.error("Login Error:", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Get Profile
+const getprofile = async (req, res) => {
+  try {
+    const userData = await User.findById(req.user._id).select("-password");
+    res.json({ success: true, userData });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -85,7 +122,6 @@ const updateProfile = async (req, res) => {
     user.lastName = lastName;
     user.phone = phone;
 
-    // Update password if provided
     if (current && newPass && confirm) {
       const match = await bcrypt.compare(current, user.password);
       if (!match)
@@ -99,7 +135,6 @@ const updateProfile = async (req, res) => {
       user.password = await bcrypt.hash(newPass, 10);
     }
 
-    // Upload new profile image
     if (imageFile) {
       const result = await new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
@@ -122,28 +157,143 @@ const updateProfile = async (req, res) => {
   }
 };
 
-// For report submission
-const submitReport = async (req, res) => {
+// Dashboard
+const addToDashboard = async (req, res) => {
   try {
-    if (!req.file || !req.file.cloudinaryUrl)
-      return res
-        .status(400)
-        .json({ success: false, message: "No file uploaded" });
+    const { summary, category, amount } = req.body;
+    const user = await User.findById(req.user._id).select("-password");
+    if (!user) return res.json({ success: false, message: "User Not Found" });
 
-    // You can now save req.file.cloudinaryUrl in DB
+    const newItem = new DashboardItem({
+      userId: req.user._id,
+      summary,
+      category,
+      amount,
+    });
+    await newItem.save();
+
     res.json({
       success: true,
-      message: "Report uploaded successfully",
-      url: req.file.cloudinaryUrl,
+      message: "Data added successfully",
+      data: newItem,
     });
   } catch (error) {
-    console.error("Submit Report Error:", error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+const itemCount = async (req, res) => {
+  try {
+    const categoryTotal = await DashboardItem.aggregate([
+      { $match: { userId: new mongoose.Types.ObjectId(req.user._id) } },
+      {
+        $group: {
+          _id: "$category",
+          totalAmount: { $sum: "$amount" },
+          count: { $sum: 1 },
+        },
+      },
+      { $project: { _id: 0, category: "$_id", totalAmount: 1, count: 1 } },
+    ]);
+    res.json({ success: true, data: categoryTotal });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
+};
+
+const getDashboarditems = async (req, res) => {
+  try {
+    const items = await DashboardItem.find({ userId: req.user._id }).sort({
+      createdAt: -1,
+    });
+    res.json({ success: true, items });
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// Other functions (login, getprofile, dashboard routes, password reset) remain the same
+const deleteDashboardItem = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedItem = await DashboardItem.findByIdAndDelete(id);
+    if (!deletedItem)
+      return res.status(404).json({ message: "Item Not Found" });
+    res.json({ message: "Item Deleted Successfully", deletedItem });
+  } catch (error) {
+    console.error("Error Deleting Item:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
 
+// Password Reset
+const sendResetCode = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+
+    const otp = crypto.randomInt(100000, 999999);
+    otpStore[email] = { otp, expires: Date.now() + 5 * 60 * 1000 };
+
+    await transporter.sendMail({
+      from: "pocketpulse0@gmail.com",
+      to: email,
+      subject: "Password Reset Verification Code",
+      text: `Your verification code is: ${otp}`,
+    });
+
+    res.json({ success: true, message: "Verification code sent to email" });
+  } catch (error) {
+    console.error("Send Reset Code Error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+const verifyResetCode = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const record = otpStore[email];
+    if (!record)
+      return res.status(400).json({ success: false, message: "No OTP found" });
+    if (record.expires < Date.now()) {
+      delete otpStore[email];
+      return res.status(400).json({ success: false, message: "OTP expired" });
+    }
+    if (record.otp != otp)
+      return res.status(400).json({ success: false, message: "Invalid OTP" });
+    res.json({ success: true, message: "OTP verified" });
+  } catch (error) {
+    console.error("Verify OTP Error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+    const user = await User.findOne({ email });
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    await user.save();
+    delete otpStore[email];
+
+    res.json({ success: true, message: "Password updated successfully" });
+  } catch (error) {
+    console.error("Reset Password Error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// Export all functions correctly
 export {
   register,
   login,
@@ -156,5 +306,4 @@ export {
   sendResetCode,
   verifyResetCode,
   resetPassword,
-  submitReport,
 };
