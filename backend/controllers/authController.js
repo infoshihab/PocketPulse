@@ -7,7 +7,6 @@ import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import transporter from "../config/nodemailer.js";
 import crypto from "crypto";
-import streamifier from "streamifier";
 
 const otpStore = {};
 
@@ -24,18 +23,10 @@ const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Upload image to Cloudinary if provided
     let imageUrl;
-    if (req.file) {
-      const result = await new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-          { folder: "profile_pics" },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          }
-        );
-        streamifier.createReadStream(req.file.buffer).pipe(stream);
+    if (req.file?.path) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "profile_pics",
       });
       imageUrl = result.secure_url;
     }
@@ -105,7 +96,6 @@ const getprofile = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const { firstName, lastName, phone, current, newPass, confirm } = req.body;
-    const imageFile = req.file;
 
     if (!firstName || !lastName || !phone)
       return res
@@ -135,18 +125,12 @@ const updateProfile = async (req, res) => {
       user.password = await bcrypt.hash(newPass, 10);
     }
 
-    if (imageFile) {
-      const result = await new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-          { folder: "profile_pics", overwrite: true },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          }
-        );
-        streamifier.createReadStream(imageFile.buffer).pipe(stream);
+    if (req.file?.path) {
+      const upload = await cloudinary.uploader.upload(req.file.path, {
+        folder: "profile_pics",
+        overwrite: true,
       });
-      user.image = result.secure_url;
+      user.image = upload.secure_url;
     }
 
     await user.save();
@@ -226,7 +210,7 @@ const deleteDashboardItem = async (req, res) => {
   }
 };
 
-// Password Reset
+// Password reset
 const sendResetCode = async (req, res) => {
   try {
     const { email } = req.body;
@@ -293,7 +277,7 @@ const resetPassword = async (req, res) => {
   }
 };
 
-// Export all functions correctly
+// Correct exports
 export {
   register,
   login,
