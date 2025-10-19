@@ -23,7 +23,7 @@ const allowedOrigins = [
   "https://www.pocketpuls.com",
   "https://pocketpuls.com",
   "https://pocketpulse-1.onrender.com",
-  "https://api.pocketpuls.com",
+  //"https://api.pocketpuls.com",
   
 ];
 
